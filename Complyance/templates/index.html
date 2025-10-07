@@ -1,0 +1,238 @@
+{% extends "base.html" %}
+
+{% block title %}Invoicing ROI Calculator{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">Calculate Your Invoicing ROI</h4>
+            </div>
+            <div class="card-body">
+                <form id="roiForm">
+                    <div class="mb-3">
+                        <label for="total_invoices" class="form-label">Total Number of Invoices per Month</label>
+                        <input type="number" class="form-control" id="total_invoices" required min="1" value="100">
+                        <div class="form-text">How many invoices do you process each month?</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="avg_value" class="form-label">Average Value per Invoice ($)</label>
+                        <input type="number" step="0.01" class="form-control" id="avg_value" required min="0.01" value="500">
+                        <div class="form-text">What's the average value of each invoice?</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="manual_hours" class="form-label">Manual Hours Spent on Invoicing</label>
+                        <input type="number" step="0.1" class="form-control" id="manual_hours" required min="0.1" value="40">
+                        <div class="form-text">How many hours are spent on invoicing tasks each month?</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="automation_cost" class="form-label">Monthly Automation Cost ($)</label>
+                        <input type="number" step="0.01" class="form-control" id="automation_cost" required min="0" value="200">
+                        <div class="form-text">What's the monthly cost of the automation solution?</div>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg">Calculate ROI</button>
+                    </div>
+                </form>
+                
+                <div id="loading" class="text-center my-4" style="display: none;">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2">Calculating your ROI...</p>
+                </div>
+                
+                <div id="result" class="mt-4" style="display: none;">
+                    <div class="alert alert-success">
+                        <h4 class="alert-heading">Your Results</h4>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p class="mb-1"><strong>Monthly Savings:</strong> $<span id="savings">0</span></p>
+                                <p class="mb-1"><strong>ROI:</strong> <span id="roi">0</span>%</p>
+                                <p class="mb-1"><strong>Payback Period:</strong> <span id="payback">0</span> months</p>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="d-grid gap-2">
+                                    <a href="#" id="viewDetails" class="btn btn-outline-primary">View Detailed Report</a>
+                                    <a href="#" id="downloadPdf" class="btn btn-outline-success">Download PDF Report</a>
+                                    <a href="#" id="saveScenario" class="btn btn-outline-secondary">Save This Scenario</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Scenarios Modal -->
+<div class="modal fade" id="scenariosModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Saved Scenarios</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="scenariosList">
+                    <p class="text-center my-4">Loading scenarios...</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('roiForm');
+        const loading = document.getElementById('loading');
+        const result = document.getElementById('result');
+        const viewScenariosBtn = document.getElementById('viewScenarios');
+        const scenariosModal = new bootstrap.Modal(document.getElementById('scenariosModal'));
+        
+        // Form submission
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Show loading
+            loading.style.display = 'block';
+            result.style.display = 'none';
+            
+            // Get form data
+            const data = {
+                total_invoices: document.getElementById('total_invoices').value,
+                avg_value: document.getElementById('avg_value').value,
+                manual_hours: document.getElementById('manual_hours').value,
+                automation_cost: document.getElementById('automation_cost').value
+            };
+            
+            // Send to server
+            fetch('/calculate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Update UI with results
+                    document.getElementById('savings').textContent = data.automation_savings.toLocaleString('en-US', {
+                        style: 'decimal',
+                        maximumFractionDigits: 2
+                    });
+                    document.getElementById('roi').textContent = data.roi_percentage.toFixed(2);
+                    
+                    // Calculate payback period
+                    const automationCost = parseFloat(document.getElementById('automation_cost').value);
+                    const payback = automationCost > 0 ? (automationCost / data.automation_savings).toFixed(1) : 0;
+                    document.getElementById('payback').textContent = payback;
+                    
+                    // Update view details and download links
+                    const viewDetailsBtn = document.getElementById('viewDetails');
+                    const downloadPdfBtn = document.getElementById('downloadPdf');
+                    const saveScenarioBtn = document.getElementById('saveScenario');
+                    
+                    // Set the href for view details button
+                    viewDetailsBtn.onclick = function(e) {
+                        e.preventDefault();
+                        window.location.href = `/results/${data.data_id}`;
+                    };
+                    
+                    // Set the href for download PDF button
+                    downloadPdfBtn.onclick = function(e) {
+                        e.preventDefault();
+                        window.location.href = `/generate_pdf/${data.data_id}`;
+                    };
+                    
+                    // Store data_id for saving scenario
+                    saveScenarioBtn.onclick = function(e) {
+                        e.preventDefault();
+                        saveScenario(data.data_id);
+                    };
+                    
+                    // Show results
+                    result.style.display = 'block';
+                } else {
+                    alert('Error: ' + (data.error || 'Unknown error occurred'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again.');
+            })
+            .finally(() => {
+                loading.style.display = 'none';
+            });
+        });
+        
+        // View scenarios
+        viewScenariosBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            loadScenarios();
+            scenariosModal.show();
+        });
+        
+        // Load scenarios
+        function loadScenarios() {
+            const scenariosList = document.getElementById('scenariosList');
+            scenariosList.innerHTML = '<p class="text-center my-4">Loading scenarios...</p>';
+            
+            fetch('/api/scenarios')
+                .then(response => response.json())
+                .then(scenarios => {
+                    if (scenarios.length === 0) {
+                        scenariosList.innerHTML = '<p class="text-center my-4">No saved scenarios found.</p>';
+                        return;
+                    }
+                    
+                    let html = '<div class="list-group">';
+                    scenarios.forEach(scenario => {
+                        html += `
+                            <div class="list-group-item">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">Scenario #${scenario.id}</h6>
+                                    <small>${new Date(scenario.created_at).toLocaleDateString()}</small>
+                                </div>
+                                <p class="mb-1">
+                                    <strong>Invoices:</strong> ${scenario.total_invoices}/mo | 
+                                    <strong>ROI:</strong> ${scenario.roi_percentage.toFixed(2)}%
+                                </p>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="/results/${scenario.id}" class="btn btn-outline-primary">View</a>
+                                    <a href="/generate_pdf/${scenario.id}" class="btn btn-outline-success">PDF</a>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    html += '</div>';
+                    
+                    scenariosList.innerHTML = html;
+                })
+                .catch(error => {
+                    console.error('Error loading scenarios:', error);
+                    scenariosList.innerHTML = '<p class="text-center text-danger">Error loading scenarios. Please try again.</p>';
+                });
+        }
+        
+        // Save scenario
+        function saveScenario(dataId) {
+            // In a real app, you might want to prompt for a name or description
+            // For now, we'll just show a success message
+            alert('Scenario saved successfully!');
+        }
+    });
+</script>
+{% endblock %}

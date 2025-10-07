@@ -1,0 +1,267 @@
+{% extends "base.html" %}
+
+{% block title %}ROI Results - Invoicing ROI Simulator{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h2 class="h4 mb-0">ROI Analysis Results</h2>
+        </div>
+        <div class="card-body">
+            <!-- Summary Section -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <h4>Input Parameters</h4>
+                    <table class="table table-bordered">
+                        <tr>
+                            <th>Parameter</th>
+                            <th>Value</th>
+                        </tr>
+                        <tr>
+                            <td>Total Invoices per Month</td>
+                            <td>{{ data.total_invoices }}</td>
+                        </tr>
+                        <tr>
+                            <td>Average Value per Invoice</td>
+                            <td>${{ "%.2f"|format(data.avg_value) }}</td>
+                        </tr>
+                        <tr>
+                            <td>Manual Hours Spent</td>
+                            <td>{{ "%.1f"|format(data.manual_hours) }} hours</td>
+                        </tr>
+                        <tr>
+                            <td>Hourly Rate</td>
+                            <td>${{ "%.2f"|format(data.hourly_rate) }}/hour</td>
+                        </tr>
+                        <tr>
+                            <td>Monthly Automation Cost</td>
+                            <td>${{ "%.2f"|format(data.automation_cost) }}</td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <h4>ROI Summary</h4>
+                    <div class="card bg-light mb-3">
+                        <div class="card-body text-center">
+                            <h2 class="display-4 {% if data.roi_percentage >= 0 %}text-success{% else %}text-danger{% endif %}">
+                                {{ "%.2f"|format(data.roi_percentage) }}%
+                            </h2>
+                            <p class="lead">Return on Investment</p>
+                            <hr>
+                            <div class="row">
+                                <div class="col-6">
+                                    <h5>${{ "%.2f"|format(data.automation_savings) }}</h5>
+                                    <small class="text-muted">Monthly Savings</small>
+                                </div>
+                                <div class="col-6">
+                                    <h5>${{ "%.2f"|format(data.manual_cost) }}</h5>
+                                    <small class="text-muted">Current Monthly Cost</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Key Insights -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h4 class="mb-0">Key Insights</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title">Time Savings</h5>
+                                    <p class="card-text">
+                                        Automating your invoicing could save approximately 
+                                        <strong>{{ "%.1f"|format(data.manual_hours * 0.7) }} hours</strong> 
+                                        per month by reducing manual data entry and processing time.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title">Error Reduction</h5>
+                                    <p class="card-text">
+                                        Automation can reduce invoicing errors by up to <strong>90%</strong>, 
+                                        minimizing costly mistakes and improving cash flow.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title">Scalability</h5>
+                                    <p class="card-text">
+                                        As your business grows to {{ (data.total_invoices * 1.5)|round|int }} invoices/month, 
+                                        your savings will increase without proportional cost increases.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Calculation Details -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h4 class="mb-0">Calculation Details</h4>
+                </div>
+                <div class="card-body">
+                    <h5>Manual Process Cost</h5>
+                    <p>
+                        {{ "%.1f"|format(data.manual_hours) }} hours × ${{ "%.2f"|format(data.hourly_rate) }}/hour = 
+                        <strong>${{ "%.2f"|format(data.manual_cost) }}/month</strong>
+                    </p>
+                    
+                    <h5>Automation Savings</h5>
+                    <p>
+                        ${{ "%.2f"|format(data.manual_cost) }} (manual) - ${{ "%.2f"|format(data.automation_cost) }} (automation) = 
+                        <strong>${{ "%.2f"|format(data.automation_savings) }}/month</strong>
+                    </p>
+                    
+                    <h5>ROI Calculation</h5>
+                    <p>
+                        (${{ "%.2f"|format(data.automation_savings) }} / ${{ "%.2f"|format(data.automation_cost) }}) × 100 = 
+                        <strong>{{ "%.2f"|format(data.roi_percentage) }}%</strong>
+                    </p>
+                    
+                    <h5>Payback Period</h5>
+                    <p>
+                        ${{ "%.2f"|format(data.automation_cost) }} / ${{ "%.2f"|format(data.automation_savings) }} = 
+                        <strong>{{ "%.1f"|format(data.automation_cost / data.automation_savings) }} months</strong> to break even
+                    </p>
+                </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Cost Breakdown</h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="costChart" height="200"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Savings Projection (12 Months)</h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="savingsChart" height="200"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="text-center">
+                <a href="/" class="btn btn-primary">
+                    <i class="bi bi-arrow-left"></i> Back to Calculator
+                </a>
+                <a href="/generate_pdf/{{ data.id }}" class="btn btn-success">
+                    <i class="bi bi-download"></i> Download PDF Report
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Cost Breakdown Chart
+        const costCtx = document.getElementById('costChart').getContext('2d');
+        new Chart(costCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Labor Cost', 'Automation Cost', 'Error Cost Savings'],
+                datasets: [{
+                    data: [
+                        {{ (data.manual_hours * data.hourly_rate) }},
+                        {{ data.automation_cost }},
+                        {{ (data.total_invoices * 100 * 0.01) }}
+                    ],
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.7)',
+                        'rgba(54, 162, 235, 0.7)',
+                        'rgba(75, 192, 192, 0.7)'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return `${context.label}: $${context.raw.toLocaleString()}`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Savings Projection Chart
+        const savingsCtx = document.getElementById('savingsChart').getContext('2d');
+        const monthlySavings = {{ data.automation_savings }};
+        
+        new Chart(savingsCtx, {
+            type: 'line',
+            data: {
+                labels: Array.from({length: 12}, (_, i) => `Month ${i+1}`),
+                datasets: [{
+                    label: 'Cumulative Savings',
+                    data: Array.from({length: 12}, (_, i) => monthlySavings * (i + 1)),
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                    fill: true,
+                    tension: 0.3
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return `$${context.raw.toLocaleString()}`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return '$' + value.toLocaleString();
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

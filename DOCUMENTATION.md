@@ -1,5 +1,3 @@
-🧩 Assignment Round 03 — Documentation
-
 Name: Blessy Sam A S
 Date: 07 October 2025
 Tech Stack: Flask (Python), HTML, CSS, JavaScript, SQLite
@@ -10,82 +8,128 @@ Invoicing ROI Simulator
 
 🧠 Problem Statement
 
-To build an application that helps small businesses or freelancers calculate the Return on Investment (ROI) for their invoicing and payment operations. The goal is to create a tool that demonstrates how automation or digital invoicing could save time and increase revenue compared to manual methods.
+The objective is to build an application that helps small businesses or freelancers calculate the Return on Investment (ROI) for their invoicing and payment operations. The tool demonstrates how automation or digital invoicing can save time, reduce errors, and improve financial outcomes compared to manual processes.
 
-🎯 Objective
+🎯 Objectives
 
-Design a simple, functional web app using Flask.
+Develop a functional web app using Flask.
 
-Allow users to enter details like total invoices, average payment value, manual hours spent, and automation costs.
+Allow users to input key invoicing data: total invoices, average payment value, manual hours, and automation costs.
 
-Compute ROI = (Profit − Cost) / Cost × 100 and show visualized results.
+Compute ROI using the formula:
 
-Provide an option to generate and download a report.
+𝑅
+𝑂
+𝐼
+=
+Profit
+−
+Cost
+Cost
+×
+100
+ROI=
+Cost
+Profit−Cost
+	​
+
+×100
+
+Visualize the results in a user-friendly interface.
+
+Provide a report generation feature (PDF/HTML) for record-keeping or presentation.
 
 ⚙️ System Architecture
+Frontend
 
-Frontend:
+HTML/CSS: Layout, forms, styling.
 
-HTML/CSS for layout and styling
+JavaScript: Form validation, AJAX requests for live results.
 
-JavaScript for form validation and AJAX requests
+Backend
 
-Backend:
+Flask (Python): Handles routing, computation logic, and API endpoints.
 
-Flask handles routes and business logic (app.py)
+SQLite Database: Stores user inputs and computed results.
 
-SQLite database to store user submissions and computed results
+Data Flow
 
-Flow:
+User opens the web form.
 
-User → Web Form → Flask Server → ROI Computation → Result Page → (Optional) Report Download
+User submits invoicing details.
+
+Flask server computes ROI and savings.
+
+Results are displayed on a dedicated results page.
+
+Optional: Generate and download report (PDF/HTML).
 
 🧮 Core Features
 
-Input Form — total invoices, cost per invoice, automation cost, manual hours.
+Input Form – Capture:
 
-Real-time ROI computation.
+Total invoices per month
 
-Display of profit percentage and comparative insights.
+Average value per invoice
 
-Data persistence in SQLite for tracking previous results.
+Manual hours spent
 
-Simple report export option (as HTML or PDF).
+Automation cost
+
+Real-time ROI computation – Display immediate results.
+
+Profit and Savings Overview – Highlight potential financial benefits.
+
+Data Persistence – Store scenarios in SQLite for tracking and retrieval.
+
+Report Export – Generate downloadable PDF or HTML summary.
 
 🗂️ Database Design
 
 Table: roi_data
 
 Column Name	Type	Description
-id	INTEGER (PK)	Auto increment
+id	INTEGER	Primary Key, auto-increment
 total_invoices	INTEGER	Number of invoices processed
 avg_value	REAL	Average value per invoice
 manual_hours	REAL	Hours spent manually
 automation_cost	REAL	Cost of automation software
 roi_percentage	REAL	Calculated ROI
 created_at	TIMESTAMP	Date of entry
-🚀 Deployment Plan
+🧮 Calculation Logic
 
-Use Render, Vercel, or Flask-based PythonAnywhere for live hosting.
-
-Connect SQLite (or upgrade to PostgreSQL on Render).
-
-Push code to GitHub → deploy → generate live URL.
+Manual Cost = manual_hours * hourly_rate
+Savings = Manual Cost - automation_cost
+ROI (%) = (Savings / automation_cost) * 100
 
 🧾 Sample Workflow
 
-Open homepage → enter invoice details.
+Open the homepage.
 
-Backend computes ROI and stores data.
+Enter invoice and cost details in the form.
 
-Results page shows ROI percentage and financial summary.
+Backend computes ROI and stores the scenario in the database.
 
-Option to download report or reset for a new calculation.
+Results page displays:
+
+ROI percentage
+
+Monthly savings
+
+Payback period
+
+Optional: Download report or start a new calculation.
 
 🔍 Future Enhancements
 
 Add login/authentication for multi-user tracking.
 
-Enable data visualization (charts using Chart.js).
+Integrate charts and visualizations using Chart.js.
 
-Integrate email notifications for report delivery.
+Enable email notifications for sending reports automatically.
+
+Upgrade database to PostgreSQL for scalability.
+
+Savings = Manual Cost - automation_cost
+
+ROI (%) = (Savings / automation_cost) * 100
